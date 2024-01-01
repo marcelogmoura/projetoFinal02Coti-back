@@ -1,8 +1,10 @@
 package com.mgmoura;
 
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.MethodOrderer;
@@ -18,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.mgmoura.dtos.ContatoPostDto;
+import com.mgmoura.dtos.ContatoPutDto;
 import com.mgmoura.entities.Contato;
 
 @SpringBootTest
@@ -48,6 +51,9 @@ class ProjetoFinal02ApplicationTests {
 				.contentType("application/json")
 				.content(mapper.writeValueAsString(post)))
 				.andExpect(status().isCreated()).andReturn();
+		
+		contato = mapper.readValue(result.getResponse().getContentAsString(), Contato.class);
+	
 	}
 	
 	
@@ -55,7 +61,19 @@ class ProjetoFinal02ApplicationTests {
 	@Order(2)
 	public void testEditarContato() throws Exception {
 		
-		fail("2");
+		Faker faker = new Faker();
+		ContatoPutDto put = new ContatoPutDto();
+		
+		put.setIdContato(contato.getIdContato());
+		put.setNome(faker.name().fullName());
+		put.setEmail(faker.internet().emailAddress());
+		put.setTelefone("8888-4444");
+		
+		mockMvc.perform(put("/api/contatos") 
+				.contentType("application/json")
+				.content(mapper.writeValueAsString(put)))
+				.andExpect(status().isOk());
+
 		
 	}
 	
@@ -75,7 +93,19 @@ class ProjetoFinal02ApplicationTests {
 		
 		mockMvc.perform(get("/api/contatos/obterPorId/" + contato.getIdContato()))
 				.andExpect(status()
-						.isOk());
+				.isOk());
+	}
+	
+	@Test
+	@Order(5)
+	public void testContatoDelete() throws Exception {
+		
+		testCriarContato();
+				
+		mockMvc.perform(delete("/api/contatos/" + contato.getIdContato()))
+			    .andExpect(status()
+			    .isOk());
+		
 	}
 
 }
